@@ -1,0 +1,72 @@
+# For advice on how to change settings please see
+# http://dev.mysql.com/doc/refman/5.7/en/server-configuration-defaults.html
+
+[mysql]
+default-character-set = {{ mysql_character_set }}
+show-warnings
+
+[client]
+port = {{ mysql_port }}
+default-character-set = {{ mysql_character_set }}
+
+[mysqld]
+port = {{ mysql_port }}
+
+# character settings
+character-set-server = {{ mysql_character_set }}
+
+# directory settings
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+log-error=/var/log/mysqld.log
+pid-file=/var/run/mysqld.pid
+symbolic-links=0
+
+# default settings
+default-time-zone={{ mysql_timezone }}
+default-storage-engine = InnoDB
+explicit_defaults_for_timestamp = 1
+lower-case-table-names = {{ mysql_lower_case_table_names }}
+
+# security settings
+secure-file-priv = {{ mysql_secure_file_priv_path }}
+default_password_lifetime = {{ mysql_password_expire }}
+
+# performance settings
+max_allowed_packet = {{ mysql_max_allowed_packet }}
+max_connections = {{ mysql_max_connections }}
+table_open_cache = 500
+table_definition_cache = 400
+open_files_limit = 700
+key_buffer_size = 16M
+query_cache_type = 0
+innodb_buffer_pool_size = 128M
+
+# thread buffer
+read_buffer_size = 256K
+read_rnd_buffer_size = 512K
+join_buffer_size = 256K
+sort_buffer_size = 512K
+
+# InnoDB
+innodb_file_per_table
+innodb_autoextend_increment = 64
+innodb_log_files_in_group = 2
+innodb_log_file_size = 128M
+innodb_log_buffer_size = 16M
+innodb_flush_log_at_trx_commit = 1
+innodb_flush_neighbors=0
+innodb_thread_concurrency = 4
+innodb_commit_concurrency = 4
+
+# log
+general_log = {{ mysql_enable_query_log|int }}
+general_log_file = {{ mysql_enable_query_log_path }}
+slow_query_log = {{ mysql_enable_slow_query|int }}
+slow_query_log_file = {{ mysql_enable_slow_query_path }}
+log_output=FILE
+
+[mysqldump]
+quick
+single-transaction
+character-set-server = {{ mysql_character_set }}

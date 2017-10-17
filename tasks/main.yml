@@ -1,0 +1,66 @@
+---
+- name: remove maridb lib
+  yum: name=mariadb-libs state=absent
+
+- name: install mysql repo
+  yum: name=http://dev.mysql.com/get/mysql57-community-release-el7-7.noarch.rpm state=present
+
+- name: install mysql
+  yum: name={{ item }} state=present
+  with_items:
+    - mysql-community-server-{{ mysql_version }}
+    - mysql-devel
+
+- name: register MySQL is started and enabled on boot
+  systemd: name=mysqld.service state=started enabled=yes daemon_reload=yes
+
+- name: install MySQL-python
+  yum: name=MySQL-python state=present
+
+- name: .my.cnf exists
+  stat: path="{{ ansible_env.HOME }}/.my.cnf"
+  register: my_cnf
+
+- name: get root password
+  shell: "grep 'password is generated' /var/log/mysqld.log | awk -F'root@localhost: ' '{print $2}'"
+  register: root_password
+  changed_when: root_password.stdout != ""
+  when: my_cnf.stat.exists != True
+
+- name: update root password
+  command: mysql --connect-expired-password -uroot -p'{{ root_password.stdout }}' -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{ mysql_root_password }}')"
+  when: my_cnf.stat.exists != True
+
+- name: put root user credential
+  template: src=root.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root
+  notify: restart mysql
+  when: my_cnf.stat.exists != True
+
+- name: put my.cnf
+  template: src=my.cnf.j2 dest=/etc/my.cnf mode=0644 owner=root group=root
+  notify: restart mysql
+
+- name: wait for open port
+  wait_for: port={{ mysql_port }} delay=5
+
+- name: disable root login remotely
+  command: mysql --connect-expired-password -uroot -p'{{ mysql_root_password }}' -NBe "{{ item }}"
+  with_items:
+    - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
+  when: my_cnf.stat.exists != True
+
+- name: remove anonymous users
+  mysql_user: name='' host=localhost state=absent
+  when: my_cnf.stat.exists != True
+
+- name: remove test database
+  mysql_db: name=test state=absent
+  when: my_cnf.stat.exists != True
+
+- name: create database
+  mysql_db: name={{ item }} encoding={{ mysql_character_set }} state=present
+  with_items: "{{ mysql_databases }}"
+
+- name: add mysql user
+  mysql_user: name={{ item.user }} password={{ item.password }} priv={{ item.priv }} state=present
+  with_items: "{{ mysql_users }}"
