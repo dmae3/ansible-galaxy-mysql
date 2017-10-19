@@ -34,7 +34,7 @@
 - name: put root user credential
   template: src=root.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root
   notify: restart mysql
-  when: my_cnf.stat.exists != True
+  when: my_cnf.stat.exists != True and mysqld != False
 
 - name: put my.cnf
   template: src=my.cnf.j2 dest=/etc/my.cnf mode=0644 owner=root group=root
