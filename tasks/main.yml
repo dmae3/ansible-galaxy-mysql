@@ -25,11 +25,11 @@
   shell: "grep 'password is generated' /var/log/mysqld.log | awk -F'root@localhost: ' '{print $2}'"
   register: root_password
   changed_when: root_password.stdout != ""
-  when: my_cnf.stat.exists != True
+  when: my_cnf.stat.exists != True and {{ mysql_root_password }} != False
 
 - name: update root password
   command: mysql --connect-expired-password -uroot -p'{{ root_password.stdout }}' -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{ mysql_root_password }}')"
-  when: my_cnf.stat.exists != True
+  when: my_cnf.stat.exists != True and {{ mysql_root_password }} != False
 
 - name: put root user credential
   template: src=root.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root
