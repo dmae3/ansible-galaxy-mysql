@@ -15,4 +15,3 @@ mysql_enable_slow_query_path: /var/lib/mysql/mysql-slow.log
 mysql_root_password: passwordPASSWORD@999
 mysql_databases: []
 mysql_users: []
-mysql_root_password: True
