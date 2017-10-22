@@ -12,6 +12,6 @@ mysql_enable_query_log: True
 mysql_enable_query_log_path: /var/lib/mysql/mysql.log
 mysql_enable_slow_query: True
 mysql_enable_slow_query_path: /var/lib/mysql/mysql-slow.log
-mysql_root_password: passwordPASSWORD@999
+mysql_root_password: Password1!
 mysql_databases: []
 mysql_users: []
