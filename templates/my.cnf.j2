@@ -17,7 +17,7 @@ character-set-server = {{ mysql_character_set }}
 
 # directory settings
 datadir=/var/lib/mysql
-socket=/var/lib/mysql/mysql.sock
+socket={{ mysql_socket }}
 log-error=/var/log/mysqld.log
 pid-file=/var/run/mysqld.pid
 symbolic-links=0
