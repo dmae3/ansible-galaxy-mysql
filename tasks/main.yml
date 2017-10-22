@@ -25,16 +25,16 @@
   shell: "grep 'password is generated' /var/log/mysqld.log | awk -F'root@localhost: ' '{print $2}'"
   register: root_password
   changed_when: root_password.stdout != ""
-  when: my_cnf.stat.exists != True and mysql_root_password != False
+  when: my_cnf.stat.exists != True
 
 - name: update root password
   command: mysql --connect-expired-password -uroot -p'{{ root_password.stdout }}' -e "SET PASSWORD FOR root@'localhost' = PASSWORD('{{ mysql_root_password }}')"
-  when: my_cnf.stat.exists != True and mysql_root_password != False
+  when: my_cnf.stat.exists != True
 
 - name: put root user credential
   template: src=root.cnf.j2 dest=/root/.my.cnf mode=0600 owner=root group=root
   notify: restart mysql
-  when: my_cnf.stat.exists != True and mysql_root_password != False
+  when: my_cnf.stat.exists != True
 
 - name: put my.cnf
   template: src=my.cnf.j2 dest=/etc/my.cnf mode=0644 owner=root group=root
@@ -47,7 +47,7 @@
   command: mysql --connect-expired-password -uroot -p'{{ mysql_root_password }}' -NBe "{{ item }}"
   with_items:
     - DELETE FROM mysql.user WHERE User='root' AND Host NOT IN ('localhost', '127.0.0.1', '::1')
-  when: my_cnf.stat.exists != True and mysql_root_password != False
+  when: my_cnf.stat.exists != True
 
 - name: remove anonymous users
   mysql_user: name='' host=localhost state=absent
